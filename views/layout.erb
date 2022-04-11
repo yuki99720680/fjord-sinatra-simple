@@ -3,8 +3,19 @@
 <head>
   <meta charset="utf-8">
   <title><%= @title %></title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <%= yield %>
+  <nav class="grey lighten-2">
+    <div class="nav-wrapper">
+      <div class="container">
+        <a href="/" class="brand-logo center cyan-text">メモアプリ</a>
+      </div>
+    </div>
+  </nav>
+  <div class="containner">
+    <%= yield %>
+  </div>
 </body>
 </html>
