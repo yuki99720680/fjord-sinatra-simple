@@ -17,13 +17,13 @@ CSV_TEXT
 IO.write 'sample.csv', csv_text
 
 get '/' do
-  @title = 'memoの一覧を表示'
+  @title = '一覧'
   @memos = CSV.read('sample.csv')
   erb :index
 end
 
 get '/new' do
-  @title = 'memoを作成'
+  @title = '新規作成'
   erb :new
 end
 
@@ -45,7 +45,7 @@ post '/new' do
 end
 
 get '/:memo' do
-  @title = ':memoの中身を表示'
+  @title = '詳細'
   @memos = CSV.read('sample.csv')
   flatten_memos = @memos.flatten
   index = (flatten_memos.find_index(params[:memo]) / 2).ceil
@@ -54,7 +54,7 @@ get '/:memo' do
 end
 
 get '/:memo/edit' do
-  @title = ':memoを編集'
+  @title = '編集'
   @memos = CSV.read('sample.csv')
   flatten_memos = @memos.flatten
   index = (flatten_memos.find_index(params[:memo]) / 2).ceil
