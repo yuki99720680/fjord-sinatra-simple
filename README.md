@@ -1,16 +1,9 @@
 # fjord-sinatra-simple
 
-## 要件
-### 必須
-- [ ] PRGパターンで実装されていること
-- [ ] RESTに倣ったURIになっていること
-- [ ] レビュアーが、ローカルでアプリケーションを立ち上げるための手順書がREADMEに記載されていること
-- [ ] Bundlerを使って必要なGemをインストールする手順になっていること
-- [ ] データが、ファイルに保存されていること（DBを使わないこと）
-- [ ] 追加はPOSTメソッド、編集はPATCHメソッド、削除はDELETEメソッドで実装すること
-- [ ] XSS対策できていること
-- [ ] rubocop-fjordのルールでのrubocopを通過していること
+## 実行方法
+- `bundle install --path vendor/bundle`
+- `bundle exec ruby memoapp.rb`
+- http://localhost:4567 にアクセス
 
-### 歓迎
-- [ ] CSS対応
-- [ ] 存在しないURLにアクセスした時に、404ページが表示されること
+## 停止方法
+- `ctrl-c`
