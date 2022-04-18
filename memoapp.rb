@@ -85,14 +85,9 @@ end
 
 delete '/:memo' do
   memo_header = params[:memo_header]
-  p memo_header
   memo_body = params[:memo_body]
-  p memo_body
   memos = CSV.read(DATA_FILE)
-  p memos
   memos.delete([memo_header, memo_body])
-  p memos
-
   File.delete(DATA_FILE)
   CSV.open(DATA_FILE, 'a') do |csv|
     memos.each do |memo|
