@@ -9,13 +9,6 @@ helpers do
   end
 end
 
-csv_text = <<~CSV_TEXT
-  hoge, kirakira
-  poge, pikapika
-CSV_TEXT
-
-IO.write 'sample.csv', csv_text
-
 get '/' do
   @title = '一覧'
   @memos = CSV.read('sample.csv')
