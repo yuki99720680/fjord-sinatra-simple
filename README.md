@@ -1,7 +1,7 @@
 # fjord-sinatra-simple
 
 ## 実行方法
-- `bundle install --path vendor/bundle`
+- `bundle install`
 - `bundle exec ruby memoapp.rb`
 - http://localhost:4567 にアクセス
 
