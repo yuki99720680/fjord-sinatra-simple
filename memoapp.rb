@@ -5,6 +5,8 @@ require 'csv'
 
 DATA_FILE = 'sample.csv'
 
+File.open('sample.csv', 'w') unless File.exist?('sample.csv')
+
 helpers do
   def h(text)
     Rack::Utils.escape_html(text)
