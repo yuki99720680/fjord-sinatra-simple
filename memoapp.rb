@@ -14,17 +14,21 @@ helpers do
 end
 
 get '/' do
+  redirect '/memos'
+end
+
+get '/memos' do
   @title = '一覧'
   @memos = CSV.read(DATA_FILE)
   erb :index
 end
 
-get '/new' do
+get '/memos/new' do
   @title = '新規作成'
   erb :new
 end
 
-post '/new' do
+post '/memos/new' do
   memos = CSV.read(DATA_FILE)
   memo_header = params[:memo_header]
   memo_body = params[:memo_body]
@@ -38,10 +42,10 @@ post '/new' do
       csv << [memo_header, memo_body]
     end
   end
-  redirect '/'
+  redirect '/memos'
 end
 
-get '/:memo' do
+get '/memos/:memo' do
   @title = '詳細'
   @memos = CSV.read(DATA_FILE)
   flatten_memos = @memos.flatten
@@ -50,7 +54,7 @@ get '/:memo' do
   erb :show
 end
 
-get '/:memo/edit' do
+get '/memos/:memo/edit' do
   @title = '編集'
   @memos = CSV.read(DATA_FILE)
   flatten_memos = @memos.flatten
@@ -59,7 +63,7 @@ get '/:memo/edit' do
   erb :edit
 end
 
-patch '/:memo' do
+patch '/memos/:memo' do
   memos = CSV.read(DATA_FILE)
   memo_header = params[:memo_header]
   memo_body = params[:memo_body]
@@ -80,10 +84,10 @@ patch '/:memo' do
       end
     end
   end
-  redirect '/'
+  redirect '/memos'
 end
 
-delete '/:memo' do
+delete '/memos/:memo' do
   memo_header = params[:memo_header]
   memo_body = params[:memo_body]
   memos = CSV.read(DATA_FILE)
@@ -94,5 +98,5 @@ delete '/:memo' do
       csv << memo
     end
   end
-  redirect '/'
+  redirect '/memos'
 end
