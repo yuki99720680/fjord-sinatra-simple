@@ -9,8 +9,14 @@
   <div class="col s12 m12 l12 xl12 center-align">
     <form method="post" action="/<%= h(@memo[0]) %>">
       <input id="hidden" type="hidden" name="_method" value="patch">
-      <input type= "text" name="memo_header" value="<%= h(@memo[0]) %>">
-      <textarea class="materialize-textarea" name="memo_body" rows="5"><%= h(@memo[1]) %></textarea>
+      <div class="input-field">
+        <input type= "text" name="memo_header" id="memo_header" value="<%= h(@memo[0]) %>">
+        <label for="memo_header" class="active">Header</label>
+      </div>
+      <div class="input-field">
+        <textarea class="materialize-textarea" name="memo_body" id="memo_body" rows="5"><%= h(@memo[1]) %></textarea>
+        <label for="memo_body" class="active">Body</label>
+      </div>
       <input class="btn" type= "submit" value="変更">
     </form>
   </div>
