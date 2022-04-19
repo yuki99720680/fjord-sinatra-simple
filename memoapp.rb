@@ -4,8 +4,11 @@ require 'sinatra'
 require 'csv'
 
 DATA_FILE = 'sample.csv'
+DATA_FILE_HEADER = <<~CSV_TEXT
+  id,header,body
+CSV_TEXT
 
-File.open('sample.csv', 'w') unless File.exist?('sample.csv')
+IO.write DATA_FILE, DATA_FILE_HEADER unless File.exist?(DATA_FILE)
 
 helpers do
   def h(text)
@@ -19,7 +22,7 @@ end
 
 get '/memos' do
   @title = '一覧'
-  @memos = CSV.read(DATA_FILE)
+  @memos = read_data_file
   erb :index
 end
 
@@ -29,74 +32,70 @@ get '/memos/new' do
 end
 
 post '/memos/new' do
-  memos = CSV.read(DATA_FILE)
+  memos = read_data_file
+  memo_id = memos.size.zero? ? 0 : memos[-1]['id'].to_i + 1
   memo_header = params[:memo_header]
   memo_body = params[:memo_body]
-  memos_headers = []
-  memos.each do |m|
-    memos_headers << m[0]
-  end
-
-  unless memos_headers.include?(memo_header)
-    CSV.open(DATA_FILE, 'a') do |csv|
-      csv << [memo_header, memo_body]
-    end
+  CSV.open(DATA_FILE, 'a') do |csv|
+    csv << [memo_id, memo_header, memo_body]
   end
   redirect '/memos'
 end
 
-get '/memos/:memo' do
+get '/memos/:memoid' do
   @title = '詳細'
-  @memos = CSV.read(DATA_FILE)
-  flatten_memos = @memos.flatten
-  index = (flatten_memos.find_index(params[:memo]) / 2).ceil
-  @memo = @memos[index]
+  @memos = read_data_file
+  @memo = find_specific_memo(@memos, params[:memoid])
   erb :show
 end
 
-get '/memos/:memo/edit' do
+get '/memos/:memoid/edit' do
   @title = '編集'
-  @memos = CSV.read(DATA_FILE)
-  flatten_memos = @memos.flatten
-  index = (flatten_memos.find_index(params[:memo]) / 2).ceil
-  @memo = @memos[index]
+  @memos = read_data_file
+  @memo = find_specific_memo(@memos, params[:memoid])
   erb :edit
 end
 
-patch '/memos/:memo' do
-  memos = CSV.read(DATA_FILE)
+patch '/memos/:memoid' do # ref
+  memos = read_data_file
+  memo_id = params[:memo_id]
+  memo = find_specific_memo(memos, memo_id)
+  index = memos.find_index(memo)
   memo_header = params[:memo_header]
   memo_body = params[:memo_body]
-  memos_headers = []
-  memos.each do |m|
-    memos_headers << m[0]
-  end
-
-  unless memos_headers.include?(memo_header)
-    flatten_memos = memos.flatten
-    index = (flatten_memos.find_index(params[:memo]) / 2).ceil
-    memos[index] = [memo_header, memo_body]
-
-    File.delete(DATA_FILE)
-    CSV.open(DATA_FILE, 'a') do |csv|
-      memos.each do |m|
-        csv << m
-      end
+  memos[index] = [memo_id, memo_header, memo_body]
+  File.delete(DATA_FILE)
+  IO.write DATA_FILE, DATA_FILE_HEADER
+  CSV.open(DATA_FILE, 'a') do |csv|
+    memos.each do |m|
+      csv << m
     end
   end
   redirect '/memos'
 end
 
-delete '/memos/:memo' do
-  memo_header = params[:memo_header]
-  memo_body = params[:memo_body]
-  memos = CSV.read(DATA_FILE)
-  memos.delete([memo_header, memo_body])
+delete '/memos/:memoid' do # ref
+  memos = read_data_file
+  memo_id = params[:memo_id]
+  memo = find_specific_memo(memos, memo_id)
+  index = memos.find_index(memo)
+  memos.delete(index)
   File.delete(DATA_FILE)
+  IO.write DATA_FILE, DATA_FILE_HEADER
   CSV.open(DATA_FILE, 'a') do |csv|
-    memos.each do |memo|
-      csv << memo
+    memos.each do |m|
+      csv << m
     end
   end
   redirect '/memos'
+end
+
+private
+
+def read_data_file
+  CSV.read(DATA_FILE, headers: true)
+end
+
+def find_specific_memo(memos, memo_id)
+  memos.find { |memo| memo['id'] == memo_id }
 end
