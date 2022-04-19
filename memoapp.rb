@@ -56,7 +56,7 @@ get '/memos/:memoid/edit' do
   erb :edit
 end
 
-patch '/memos/:memoid' do # ref
+patch '/memos/:memoid' do
   memos = read_data_file
   memo_id = params[:memo_id]
   memo = find_specific_memo(memos, memo_id)
@@ -64,29 +64,16 @@ patch '/memos/:memoid' do # ref
   memo_header = params[:memo_header]
   memo_body = params[:memo_body]
   memos[index] = [memo_id, memo_header, memo_body]
-  File.delete(DATA_FILE)
-  IO.write DATA_FILE, DATA_FILE_HEADER
-  CSV.open(DATA_FILE, 'a') do |csv|
-    memos.each do |m|
-      csv << m
-    end
-  end
+  update_file(memos)
   redirect '/memos'
 end
 
-delete '/memos/:memoid' do # ref
+delete '/memos/:memoid' do
   memos = read_data_file
-  memo_id = params[:memo_id]
-  memo = find_specific_memo(memos, memo_id)
+  memo = find_specific_memo(memos, params[:memoid])
   index = memos.find_index(memo)
   memos.delete(index)
-  File.delete(DATA_FILE)
-  IO.write DATA_FILE, DATA_FILE_HEADER
-  CSV.open(DATA_FILE, 'a') do |csv|
-    memos.each do |m|
-      csv << m
-    end
-  end
+  update_file(memos)
   redirect '/memos'
 end
 
@@ -98,4 +85,14 @@ end
 
 def find_specific_memo(memos, memo_id)
   memos.find { |memo| memo['id'] == memo_id }
+end
+
+def update_file(memos)
+  File.delete(DATA_FILE)
+  IO.write DATA_FILE, DATA_FILE_HEADER
+  CSV.open(DATA_FILE, 'a') do |csv|
+    memos.each do |memo|
+      csv << memo
+    end
+  end
 end
