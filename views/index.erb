@@ -10,9 +10,9 @@
     <ul>
       <% @memos.each do |memo| %>
         <li>
-            <a href='/memos/<%= h(memo['id']) %>'>
-              <%= h(memo['header']) %>
-            </a>
+          <a href='/memos/<%= h(memo['id']) %>'>
+            <%= h(memo['header']) %>
+          </a>
         </li>
       <% end %>
     </ul>
