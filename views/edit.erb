@@ -9,7 +9,6 @@
   <div class="col s12 m12 l12 xl12 center-align">
     <form method="post" action="/memos/<%= h(@memo['id']) %>">
       <input id="hidden" type="hidden" name="_method" value="patch">
-      <input type="hidden" name="memo_id" value="<%= h(@memo['id']) %>">
       <div class="input-field">
         <input type="text" name="memo_header" id="memo_header" value="<%= h(@memo['header']) %>">
         <label for="memo_header" class="active">Header</label>

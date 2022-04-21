@@ -58,7 +58,7 @@ end
 
 patch '/memos/:memoid' do
   memos = read_data_file
-  memo_id = params[:memo_id]
+  memo_id = params[:memoid]
   memo = find_specific_memo(memos, memo_id)
   index = memos.find_index(memo)
   memo_header = params[:memo_header]

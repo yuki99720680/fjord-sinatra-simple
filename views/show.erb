@@ -12,9 +12,6 @@
   <div class="col s12 m12 l12 xl12 center-align">
     <form method="post" action="/memos/<%= h(@memo['id']) %>">
       <input id="hidden" type="hidden" name="_method" value="delete">
-      <input type= "hidden" name="memo_id" value="<%= h(@memo['id']) %>">
-      <input type= "hidden" name="memo_header" value="<%= h(@memo['header']) %>">
-      <input type= "hidden" name="memo_body" value="<%= h(@memo['body']) %>">
       <input class="btn" type= "submit" value="削除">
     </form>
   </div>
