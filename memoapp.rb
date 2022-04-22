@@ -1,14 +1,11 @@
 # frozen_string_literal: true
 
 require 'sinatra'
-require 'csv'
+require 'pg'
 
-DATA_FILE = 'sample.csv'
-DATA_FILE_HEADER = <<~CSV_TEXT
-  id,header,body
-CSV_TEXT
-
-IO.write DATA_FILE, DATA_FILE_HEADER unless File.exist?(DATA_FILE)
+SELECT_ALL_MEMOS_SQL = <<~SQL
+  SELECT * FROM memos ORDER BY id ASC;
+SQL
 
 helpers do
   def h(text)
@@ -22,7 +19,7 @@ end
 
 get '/memos' do
   @title = '一覧'
-  @memos = read_data_file
+  @memos = sql_execution(SELECT_ALL_MEMOS_SQL)
   erb :index
 end
 
@@ -32,67 +29,66 @@ get '/memos/new' do
 end
 
 post '/memos/new' do
-  memos = read_data_file
-  memo_id = memos.size.zero? ? 0 : memos[-1]['id'].to_i + 1
   memo_header = params[:memo_header]
   memo_body = params[:memo_body]
-  CSV.open(DATA_FILE, 'a') do |csv|
-    csv << [memo_id, memo_header, memo_body]
-  end
+  insert_memos_sql = build_insert_memos_sql(memo_header, memo_body)
+  sql_execution(insert_memos_sql)
   redirect '/memos'
 end
 
 get '/memos/:memoid' do
   @title = '詳細'
-  @memos = read_data_file
-  @memo = find_specific_memo(@memos, params[:memoid])
+  memo_id = params[:memoid]
+  select_specific_memos_sql = build_select_specific_memos_sql(memo_id)
+  memos = sql_execution(select_specific_memos_sql)
+  @memo = memos.first
   erb :show
 end
 
 get '/memos/:memoid/edit' do
   @title = '編集'
-  @memos = read_data_file
-  @memo = find_specific_memo(@memos, params[:memoid])
+  memo_id = params[:memoid]
+  select_specific_memos_sql = build_select_specific_memos_sql(memo_id)
+  memos = sql_execution(select_specific_memos_sql)
+  @memo = memos.first
   erb :edit
 end
 
 patch '/memos/:memoid' do
-  memos = read_data_file
-  memo_id = params[:memoid]
-  memo = find_specific_memo(memos, memo_id)
-  index = memos.find_index(memo)
   memo_header = params[:memo_header]
   memo_body = params[:memo_body]
-  memos[index] = [memo_id, memo_header, memo_body]
-  update_file(memos)
+  memo_id = params[:memoid]
+  update_specific_memos_sql = build_update_specific_memos_sql(memo_header, memo_body, memo_id)
+  sql_execution(update_specific_memos_sql)
   redirect '/memos'
 end
 
 delete '/memos/:memoid' do
-  memos = read_data_file
-  memo = find_specific_memo(memos, params[:memoid])
-  index = memos.find_index(memo)
-  memos.delete(index)
-  update_file(memos)
+  memo_id = params[:memoid]
+  delete_specific_memos_sql = build_delete_specific_memos_sql(memo_id)
+  sql_execution(delete_specific_memos_sql)
   redirect '/memos'
 end
 
 private
 
-def read_data_file
-  CSV.read(DATA_FILE, headers: true)
+def sql_execution(sql)
+  memos_db = PG.connect(dbname: 'memo_app')
+  memos_db.exec(sql)
 end
 
-def find_specific_memo(memos, memo_id)
-  memos.find { |memo| memo['id'] == memo_id }
+def build_select_specific_memos_sql(memo_id)
+  "SELECT * FROM memos WHERE id = #{memo_id};"
 end
 
-def update_file(memos)
-  File.delete(DATA_FILE)
-  IO.write DATA_FILE, DATA_FILE_HEADER
-  CSV.open(DATA_FILE, 'a') do |csv|
-    memos.each do |memo|
-      csv << memo
-    end
-  end
+def build_insert_memos_sql(memo_header, memo_body)
+  "INSERT INTO memos (header, body) VALUES ('#{memo_header}', '#{memo_body}');"
+end
+
+def build_update_specific_memos_sql(memo_header, memo_body, memo_id)
+  "UPDATE memos SET header = '#{memo_header}', body = '#{memo_body}' WHERE id = #{memo_id};"
+end
+
+def build_delete_specific_memos_sql(memo_id)
+  "DELETE FROM memos WHERE id = #{memo_id};"
 end
