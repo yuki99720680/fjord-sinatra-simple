@@ -1,0 +1,20 @@
+<div class="row">
+  <div class="col s12 m12 l12 xl12 center-align">
+    <h2><%= @title %></h2>
+    <a class="btn" href='/memos/new'>新規作成</a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col s12 m12 l12 xl12 center-align">
+    <ul>
+      <% @memos.each do |memo| %>
+        <li>
+          <a href='/memos/<%= h(memo['id']) %>'>
+            <%= h(memo['header']) %>
+          </a>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</div>
