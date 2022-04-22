@@ -3,9 +3,11 @@
 require 'sinatra'
 require 'pg'
 
-SELECT_ALL_MEMOS_SQL = <<~SQL
-  SELECT * FROM memos ORDER BY id ASC;
-SQL
+SELECT_ALL_MEMOS_SQL = 'SELECT * FROM memos ORDER BY id ASC'
+SELECT_SPECIFIC_MEMOS_SQL = 'SELECT * FROM memos WHERE id = $1' # [memo_id]
+INSERT_MEMOS_SQL = 'INSERT INTO memos (header, body) VALUES ($1, $2)' # [memo_header, memo_body]
+UPDATE_SPECIFIC_MEMOS_SQL = 'UPDATE memos SET header = $1, body = $2 WHERE id = $3' # [memo_header, memo_body, memo_id]
+DELETE_SPECIFIC_MEMOS_SQL = 'DELETE FROM memos WHERE id = $1' # [memo_id]
 
 helpers do
   def h(text)
@@ -19,7 +21,7 @@ end
 
 get '/memos' do
   @title = '一覧'
-  @memos = sql_execution(SELECT_ALL_MEMOS_SQL)
+  @memos = execute_select_all_memos_sql
   erb :index
 end
 
@@ -31,26 +33,21 @@ end
 post '/memos/new' do
   memo_header = params[:memo_header]
   memo_body = params[:memo_body]
-  insert_memos_sql = build_insert_memos_sql(memo_header, memo_body)
-  sql_execution(insert_memos_sql)
+  execute_bind_sql(INSERT_MEMOS_SQL, [memo_header, memo_body])
   redirect '/memos'
 end
 
 get '/memos/:memoid' do
   @title = '詳細'
   memo_id = params[:memoid]
-  select_specific_memos_sql = build_select_specific_memos_sql(memo_id)
-  memos = sql_execution(select_specific_memos_sql)
-  @memo = memos.first
+  @memo = execute_bind_sql(SELECT_SPECIFIC_MEMOS_SQL, [memo_id]).first
   erb :show
 end
 
 get '/memos/:memoid/edit' do
   @title = '編集'
   memo_id = params[:memoid]
-  select_specific_memos_sql = build_select_specific_memos_sql(memo_id)
-  memos = sql_execution(select_specific_memos_sql)
-  @memo = memos.first
+  @memo = execute_bind_sql(SELECT_SPECIFIC_MEMOS_SQL, [memo_id]).first
   erb :edit
 end
 
@@ -58,37 +55,28 @@ patch '/memos/:memoid' do
   memo_header = params[:memo_header]
   memo_body = params[:memo_body]
   memo_id = params[:memoid]
-  update_specific_memos_sql = build_update_specific_memos_sql(memo_header, memo_body, memo_id)
-  sql_execution(update_specific_memos_sql)
+  execute_bind_sql(UPDATE_SPECIFIC_MEMOS_SQL, [memo_header, memo_body, memo_id])
   redirect '/memos'
 end
 
 delete '/memos/:memoid' do
   memo_id = params[:memoid]
-  delete_specific_memos_sql = build_delete_specific_memos_sql(memo_id)
-  sql_execution(delete_specific_memos_sql)
+  execute_bind_sql(DELETE_SPECIFIC_MEMOS_SQL, [memo_id])
   redirect '/memos'
 end
 
 private
 
-def sql_execution(sql)
-  memos_db = PG.connect(dbname: 'memo_app')
-  memos_db.exec(sql)
+def connect_db
+  PG.connect(dbname: 'memo_app')
 end
 
-def build_select_specific_memos_sql(memo_id)
-  "SELECT * FROM memos WHERE id = #{memo_id};"
+def execute_select_all_memos_sql
+  memos_db = connect_db
+  memos_db.exec(SELECT_ALL_MEMOS_SQL)
 end
 
-def build_insert_memos_sql(memo_header, memo_body)
-  "INSERT INTO memos (header, body) VALUES ('#{memo_header}', '#{memo_body}');"
-end
-
-def build_update_specific_memos_sql(memo_header, memo_body, memo_id)
-  "UPDATE memos SET header = '#{memo_header}', body = '#{memo_body}' WHERE id = #{memo_id};"
-end
-
-def build_delete_specific_memos_sql(memo_id)
-  "DELETE FROM memos WHERE id = #{memo_id};"
+def execute_bind_sql(sql, array)
+  memos_db = connect_db
+  memos_db.exec(sql, array)
 end
